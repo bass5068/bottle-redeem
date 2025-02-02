@@ -1,7 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import NextAuth, { DefaultSession, NextAuthOptions,  } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+
 
 const prisma = new PrismaClient();
 
@@ -10,13 +11,13 @@ declare module "next-auth" {
     user: {
       id: string;
       points: number;
-      role: string;
+      role: Role;
     } & DefaultSession["user"];
   }
 
   interface User {
     id: string;
-    role: string;
+    role: Role;
   }
 }
 
@@ -31,15 +32,24 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "database", // หรือใช้ "jwt" ถ้าไม่ต้องการเก็บใน DB
+    strategy: "jwt", // หรือใช้ "jwt" ถ้าไม่ต้องการเก็บใน DB
   },
   callbacks: {
-    async session({ session, user }) {
-      session.user.id = user.id;
-      session.user.role = user.role; // เพิ่ม role ใน session
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role; // ดึง role จาก User และเพิ่มลงใน JWT
+        token.id = user.id; // เพิ่ม id ลงใน JWT
+      }
+      return token;
+    },
+    // เพิ่ม role และ id ลงใน Session
+    async session({ session, token }) {
+      session.user.id = token.id as string; // ดึง id จาก JWT
+      session.user.role = token.role as Role; // ดึง role จาก JWT
       return session;
     },
   },
+  
   
 };
 

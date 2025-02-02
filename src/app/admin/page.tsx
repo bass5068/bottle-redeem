@@ -1,13 +1,15 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Role } from "@prisma/client";
 import Link from "next/link";
 
 interface User {
   id: number;
   name: string;
   email: string;
-  role: string;
+  role: Role;
 }
 
 interface Reward {
@@ -18,22 +20,36 @@ interface Reward {
 }
 
 export default function AdminDashboard() {
+  const { data: session, status } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch users
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data) => setUsers(data))
-      .catch((error) => console.error("Failed to fetch users:", error));
-
-    // Fetch rewards
-    fetch("/api/rewards")
-      .then((res) => res.json())
-      .then((data) => setRewards(data))
-      .catch((error) => console.error("Failed to fetch rewards:", error));
+    Promise.all([
+      fetch("/api/users").then((res) => res.json()),
+      fetch("/api/rewards").then((res) => res.json()),
+    ])
+      .then(([usersData, rewardsData]) => {
+        setUsers(usersData);
+        setRewards(rewardsData);
+      })
+      .catch((error) => console.error("Failed to fetch data:", error))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
+
+  if (!session || session.user.role !== "ADMIN") {
+    return <p>Access Denied</p>;
+  }
+
+
+  if (loading) {
+    return <p>Loading data...</p>;
+  }
 
   return (
     <div className="p-4">
@@ -93,14 +109,13 @@ export default function AdminDashboard() {
             ))}
           </tbody>
         </table>
-        <button className="mt-4 p-2 bg-green-500 text-white rounded">Add New Reward</button>
       </section>
 
       {/* Redemption Reports Section */}
       <section>
         <h2 className="text-2xl font-semibold mb-4">Redemption Reports</h2>
         <Link href="/admin/reports">
-          <a className="text-blue-500 underline">View Redemption Reports</a>
+          <span className="text-blue-500 underline">View Redemption Reports</span>
         </Link>
       </section>
     </div>

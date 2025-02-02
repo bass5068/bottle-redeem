@@ -44,8 +44,8 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-200">
       {session ? (
         <>
-          <h1 className="text-2xl font-bold">Welcome, {session.user?.name}</h1>
-          <p>Your Points: {points}</p>
+          <h1 className="text-2xl font-bold text-blue-600">Welcome, {session.user?.name}</h1>
+          <p className="text-amber-500">Your Points: {points}</p>
           <button
             onClick={handleAddPoints}
             className="mt-4 p-2 bg-green-500 text-white rounded"

@@ -1,9 +1,11 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 export default function HistoryPage() {
   const { data: session } = useSession();
-  
+
   interface HistoryItem {
     id: string;
     reward: {
@@ -15,7 +17,7 @@ export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (session?.user.id) {
       fetch(`/api/get-history?userId=${session.user.id}`)
         .then((res) => res.json())
         .then((data) => setHistory(data))

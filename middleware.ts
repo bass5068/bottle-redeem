@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
@@ -9,9 +10,7 @@ export async function middleware(req: NextRequest) {
   // ตรวจสอบเฉพาะเส้นทางที่เริ่มต้นด้วย "/admin"
   if (url.pathname.startsWith("/admin")) {
     console.log("Token in Middleware:", token);
-    // ถ้าไม่มี Token หรือ role ไม่ใช่ admin ให้ Redirect ไปหน้าแรก
-    if (!token || token.role !== "admin") {
-    
+    if (!token || token.role !== Role.ADMIN) {
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
