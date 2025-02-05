@@ -3,11 +3,13 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Menu } from "@headlessui/react";
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
-  const [userPoints, setUserPoints] = useState<number | null>(null);
+  // const [userPoints, setUserPoints] = useState<number | null>(null);
+
 
   // Fetch user data when session is available
   useEffect(() => {
@@ -20,13 +22,13 @@ export default function Navbar() {
           }
           return res.json();
         })
-        .then((data) => setUserPoints(data.points))
+        // .then((data) => setUserPoints(data.points))
         .catch((error) => console.error("Failed to fetch user data:", error));
     }
   }, [session, status]);
 
   return (
-    <nav className="flex items-center justify-between bg-blue-600 text-white px-4 py-2">
+    <nav className="flex items-center justify-between bg-green-400 text-white px-4 py-2">
       {/* Logo */}
       <div className="text-lg font-bold">
         <Link href="/">Point Redeem App</Link>
@@ -55,11 +57,11 @@ export default function Navbar() {
       {status === "authenticated" ? (
         <div className="relative">
           <Menu>
-            <Menu.Button className="flex items-center space-x-2 bg-white text-blue-600 px-3 py-1 rounded cursor-pointer">
-              <span>{session.user.name}</span>
-              <span className="bg-yellow-400 text-white px-4 py-1 rounded-full">
+            <Menu.Button className="flex items-center space-x-3  bg-white text-green-800 px-3 py-2 rounded cursor-pointer hover:bg-yellow-100 focus:outline-2 focus:outline-offset-2 focus:outline-green-100 active:bg-green-100 ">
+              <span>{session.user.name}  </span>
+              {/* <span className="bg-yellow-400 text-white px-4 py-1 rounded-full">
                 {userPoints ?? session.user.points} 
-              </span>
+              </span> */}
             </Menu.Button>
             <Menu.Items className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md">
               {/* Account Link */}
@@ -68,7 +70,7 @@ export default function Navbar() {
                   <Link
                     href="/account"
                     className={`${
-                      active ? "bg-blue-500 text-white" : "text-gray-900"
+                      active ? "bg-green-200 text-green-800" : "text-green-800"
                     } block w-full text-left px-4 py-2`}
                   >
                     Account
@@ -80,7 +82,7 @@ export default function Navbar() {
                 {({ active }) => (
                   <button
                     className={`${
-                      active ? "bg-blue-500 text-white" : "text-gray-900"
+                      active ? "bg-red-200 text-green-800" : "text-green-800"
                     } block w-full text-left px-4 py-2`}
                     onClick={() => signOut()}
                   >
@@ -93,7 +95,7 @@ export default function Navbar() {
         </div>
       ) : (
         <button
-          className="bg-white text-blue-600 px-3 py-1 rounded"
+          className="bg-white text-green-800 px-3 py-1 rounded"
           onClick={() => signIn()}
         >
           Login

@@ -11,11 +11,13 @@ export default function ManageRewards() {
   }
 
   const [rewards, setRewards] = useState<Reward[]>([]);
-  const [newReward, setNewReward] = useState({
+  const [newReward, setNewReward] = useState<Reward>({
+    id: 0,
     name: "",
     points: 0,
     stock: 0,
   });
+  const [isEditing, setIsEditing] = useState(false); // Track edit state
 
   useEffect(() => {
     fetch("/api/rewards")
@@ -29,23 +31,35 @@ export default function ManageRewards() {
       .catch((error) => console.error("Error fetching rewards:", error));
   }, []);
 
-  const addReward = () => {
-    fetch("/api/rewards", {
-      method: "POST",
+  const addOrEditReward = () => {
+    const url = isEditing ? `/api/rewards?id=${newReward.id}` : "/api/rewards";
+    const method = isEditing ? "PUT" : "POST";
+
+    fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newReward),
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to add reward");
+          throw new Error(isEditing ? "Failed to edit reward" : "Failed to add reward");
         }
         return res.json();
       })
       .then((data) => {
-        setRewards((prev) => [...prev, data]);
-        setNewReward({ name: "", points: 0, stock: 0 });
+        if (isEditing) {
+          // Update the existing reward
+          setRewards((prev) =>
+            prev.map((reward) => (reward.id === data.id ? data : reward))
+          );
+        } else {
+          // Add new reward
+          setRewards((prev) => [...prev, data]);
+        }
+        setNewReward({ id: 0, name: "", points: 0, stock: 0 });
+        setIsEditing(false);
       })
-      .catch((error) => console.error("Error adding reward:", error));
+      .catch((error) => console.error(error));
   };
 
   const deleteReward = (id: number) => {
@@ -62,40 +76,54 @@ export default function ManageRewards() {
       .catch((error) => console.error("Error deleting reward:", error));
   };
 
+  const startEdit = (reward: Reward) => {
+    setNewReward(reward);
+    setIsEditing(true);
+  };
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Manage Rewards</h1>
-      <table className="min-w-full table-auto border-collapse border border-gray-200">
-        <thead>
-          <tr>
-            <th className="border px-4 py-2">Name</th>
-            <th className="border px-4 py-2">Points</th>
-            <th className="border px-4 py-2">Stock</th>
-            <th className="border px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rewards.map((reward) => (
-            <tr key={reward.id}>
-              <td className="border px-4 py-2">{reward.name}</td>
-              <td className="border px-4 py-2">{reward.points}</td>
-              <td className="border px-4 py-2">{reward.stock}</td>
-              <td className="border px-4 py-2">
-                <button className="text-blue-500">Edit</button>
-                <button
-                  className="text-red-500 ml-2"
-                  onClick={() => deleteReward(reward.id)}
-                >
-                  Delete
-                </button>
-              </td>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center">Manage Rewards</h1>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse border border-gray-300">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-4 py-2 text-left">Name</th>
+              <th className="border px-4 py-2 text-left">Points</th>
+              <th className="border px-4 py-2 text-left">Stock</th>
+              <th className="border px-4 py-2 text-center">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-6">
-        <h2 className="text-xl font-bold mb-4">Add New Reward</h2>
+          </thead>
+          <tbody>
+            {rewards.map((reward) => (
+              <tr key={reward.id} className="hover:bg-gray-50">
+                <td className="border px-4 py-2">{reward.name}</td>
+                <td className="border px-4 py-2">{reward.points}</td>
+                <td className="border px-4 py-2">{reward.stock}</td>
+                <td className="border px-4 py-2 text-center">
+                  <button
+                    className="px-2 py-1 text-blue-500"
+                    onClick={() => startEdit(reward)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="px-2 py-1 text-red-500"
+                    onClick={() => deleteReward(reward.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">{isEditing ? "Edit Reward" : "Add New Reward"}</h2>
         <div className="flex flex-col space-y-4">
+        <p className="text-black pl-2">Name</p>
           <input
             type="text"
             placeholder="Reward Name"
@@ -105,6 +133,7 @@ export default function ManageRewards() {
             }
             className="border px-4 py-2 rounded"
           />
+          <p className="text-black pl-2">Price</p>
           <input
             type="number"
             placeholder="Points"
@@ -116,7 +145,9 @@ export default function ManageRewards() {
               })
             }
             className="border px-4 py-2 rounded"
+          
           />
+          <p className="text-black pl-2 ">Stock</p>
           <input
             type="number"
             placeholder="Stock"
@@ -131,9 +162,9 @@ export default function ManageRewards() {
           />
           <button
             className="p-2 bg-green-500 text-white rounded"
-            onClick={addReward}
+            onClick={addOrEditReward}
           >
-            Add Reward
+            {isEditing ? "Update Reward" : "Add Reward"}
           </button>
         </div>
       </div>

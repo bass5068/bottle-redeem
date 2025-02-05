@@ -108,7 +108,7 @@ export default function RewardsPage() {
           >
             <h2 className="text-xl font-bold mb-2 text-gray-800">{reward.name}</h2>
             <p className="text-gray-600 mb-4">{reward.description}</p>
-            <p className="text-blue-600 font-semibold mb-2">
+            <p className="text-yellow-400 font-semibold mb-2">
               Points Required: <span className="text-gray-800">{reward.points}</span>
             </p>
             <p
@@ -122,8 +122,8 @@ export default function RewardsPage() {
               className={`w-full py-2 px-4 rounded text-white font-semibold ${
                 reward.stock > 0 &&
                 (session?.user?.points ?? 0) >= reward.points
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-gray-400 cursor-not-allowed"
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-red-800 cursor-not-allowed"
               }`}
               onClick={() => handleRedeem(reward)}
               disabled={
@@ -158,7 +158,7 @@ export default function RewardsPage() {
                 Cancel
               </button>
               <button
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-400"
                 onClick={confirmRedeem}
               >
                 Redeem
