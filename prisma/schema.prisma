@@ -72,6 +72,7 @@ model Reward {
   id          String   @id @default(cuid())
   name        String
   description String?
+  image       String?
   points      Int
   stock       Int
   createdAt   DateTime @default(now())

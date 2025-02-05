@@ -48,6 +48,7 @@ export default async function RedeemAPI(req: NextApiRequest, res: NextApiRespons
         }
     
     } else {
-        return res.status(405).json({ error: "Method not allowed" });
+        res.setHeader("Allow", ["POST"]);
+        return res.status(405).end(`Method ${req.method} Not Allowed`);
     }   
 }

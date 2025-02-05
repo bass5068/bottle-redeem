@@ -28,6 +28,7 @@ export default function HistoryPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Redemption History</h1>
+      <h2 className="text-2xl font-bold mb-4 text-red-400">เพิ่มถ้ายังไม่มีข้อมูลให้ทำการยังไม่เคยทำรายการ</h2>
       <ul>
         {history.map((item) => (
           <li key={item.id} className="mb-2">

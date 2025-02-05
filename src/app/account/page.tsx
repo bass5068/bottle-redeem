@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Role } from "@prisma/client";
 import Link from "next/link";
-// import { link } from "fs";
 
 interface User {
   id: number;
@@ -87,9 +86,9 @@ export default function AdminDashboard() {
       {/* Rewards Section */}
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Manage Rewards</h2>
-        <Link href="/admin/rewards">
-          <span className="text-blue-500 ">ADD</span>
-        </Link>
+        <Link href="/admin/rewards" className="hover:underline">
+            Add
+          </Link>
         <table className="min-w-full table-auto border-collapse border border-gray-200">
           <thead>
             <tr>
@@ -114,7 +113,14 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </section>
-      
+
+      {/* Redemption Reports Section */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">Redemption Reports</h2>
+        <Link href="/admin/reports">
+          <span className="text-blue-500 underline">View Redemption Reports</span>
+        </Link>
+      </section>
     </div>
   );
 }
