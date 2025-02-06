@@ -3,12 +3,12 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Menu } from "@headlessui/react";
-// import { useState, useEffect } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+// import { useEffect } from "react";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
-  // const [userPoints, setUserPoints] = useState<number | null>(null);
+  const [userPoints, setUserPoints] = useState<number | null>(null);
 
 
   // Fetch user data when session is available
@@ -22,7 +22,7 @@ export default function Navbar() {
           }
           return res.json();
         })
-        // .then((data) => setUserPoints(data.points))
+        .then((data) => setUserPoints(data.points))
         .catch((error) => console.error("Failed to fetch user data:", error));
     }
   }, [session, status]);
@@ -59,9 +59,9 @@ export default function Navbar() {
           <Menu>
             <Menu.Button className="flex items-center space-x-3  bg-white text-green-800 px-3 py-2 rounded cursor-pointer hover:bg-yellow-100 focus:outline-2 focus:outline-offset-2 focus:outline-green-100 active:bg-green-100 ">
               <span>{session.user.name}  </span>
-              {/* <span className="bg-yellow-400 text-white px-4 py-1 rounded-full">
+              <span className="bg-yellow-400 text-white px-4 py-1 rounded-full">
                 {userPoints ?? session.user.points} 
-              </span> */}
+              </span>
             </Menu.Button>
             <Menu.Items className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md">
               {/* Account Link */}
