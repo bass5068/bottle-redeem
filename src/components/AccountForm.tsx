@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 export default function AccountForm() {
   const { data: session } = useSession();
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (session?.user.id) {
@@ -17,10 +17,31 @@ export default function AccountForm() {
           setName(data.name);
           setImage(data.image);
         })
-        .catch((error) => console.error("Failed to fetch account data:", error))
-        .finally(() => setLoading(false));
+        .catch((error) => console.error("Failed to fetch account data:", error));
     }
   }, [session]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+
+    const formData = new FormData();
+    formData.append("image", e.target.files[0]);
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      setImage(data.imageUrl);
+      setLoading(false);
+    } catch (error) {
+      console.error("Upload failed", error);
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,20 +86,15 @@ export default function AccountForm() {
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Profile Picture URL</label>
-        <input
-          type="text"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
-        />
+        <label className="block text-sm font-medium mb-2">Profile Picture</label>
+        <input type="file" accept="image/*" onChange={handleUpload} />
+        {loading && <p className="text-sm text-gray-500">Uploading...</p>}
+        {image && (
+          <div>
+            <img src={image} alt="Profile Preview" className="w-24 h-24 rounded-full" />
+          </div>
+        )}
       </div>
-
-      {image && (
-        <div className="mb-4">
-          <img src={image} alt="Profile Preview" className="w-24 h-24 rounded-full" />
-        </div>
-      )}
 
       <button
         type="submit"

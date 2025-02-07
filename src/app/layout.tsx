@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Point Redeem App",
+  title: "BottleCoins",
   description: "A simple points management and redemption app",
 };
 
@@ -21,7 +21,7 @@ export default function RootLayout({
       <SessionProvider>
         <body className={inter.className}>
           <Navbar />
-          <main className="p-4">{children}</main>
+          <main className="">{children}</main>
         </body>
       </SessionProvider>
     </html>

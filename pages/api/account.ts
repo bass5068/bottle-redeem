@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../lib/prisma";
 
 // API สำหรับจัดการข้อมูลบัญชี
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function ProfileAPI(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
 
   switch (method) {

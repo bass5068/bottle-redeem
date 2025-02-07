@@ -82,10 +82,15 @@ model Reward {
 
 model Redemption {
 id        String   @id @default(cuid())
+user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 userId    String
+reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 rewardId  String
 createdAt DateTime @default(now())
+status    Status   @default(PENDING) // เพิ่มสถานะ
 
-user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+}
+enum Status {
+  PENDING  // รอรับของ
+  COMPLETED // ได้รับของแล้ว
 }
