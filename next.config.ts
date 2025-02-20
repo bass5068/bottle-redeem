@@ -1,10 +1,14 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
   images: {
-    domains: ["https://lorem-picsum.netlify.app/"], // เพิ่มโดเมนที่อนุญาต
+    domains: ['lh3.googleusercontent.com', 'your-image-domain.com'],
   },
-  /* config options here */
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb", // เพิ่มขนาดเป็น 10MB หรือปรับตามที่ต้องการ
+    },
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
