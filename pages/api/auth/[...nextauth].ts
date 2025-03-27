@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
 const prisma = new PrismaClient();
 
+// ✅ เพิ่ม Type ให้ Session และ User
 declare module "next-auth" {
   interface Session {
     user: {
@@ -28,21 +29,17 @@ export const authOptions: NextAuthOptions = {
   ],
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
+
+  // ✅ ใช้ Database Session เพื่อหลีกเลี่ยง Cookie ใหญ่เกิน (HTTP 431)
   session: {
-    strategy: "jwt",
+    strategy: "database",
   },
+
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+        session.user.role = user.role;
       }
       return session;
     },

@@ -2,7 +2,25 @@ import UserTable from "@/components/UserTable";
 import RewardTable from "@/components/RewardTable";
 import Link from "next/link";
 
-export default function AdminDashboard() {
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function AdminPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session || session.user.role !== "ADMIN") {
+      router.push("/"); // redirect ถ้าไม่ใช่แอดมิน
+    }
+  }, [status, session, router]);
+
+  if (status === "loading" || !session || session.user.role !== "ADMIN") {
+    return <p>Loading...</p>; // หรือ spinner
+  }
+
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center text-green-700">
@@ -48,3 +66,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+  

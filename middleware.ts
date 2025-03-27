@@ -1,18 +1,25 @@
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-import { NextRequest } from "next/server";
+export default withAuth(
+  function middleware(req) {
+    const role = req.nextauth.token?.role;
 
-export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  if (!token || token.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/", req.url)); // กลับหน้า Home ถ้าไม่ใช่ admin
+    // ✅ ตรวจ role
+    if (req.nextUrl.pathname.startsWith("/admin") && role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token, // ✅ ต้องมี token ถึงจะเข้าได้
+    },
   }
-
-  return NextResponse.next();
-}
+);
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*"], // ✅ ตรวจเฉพาะเส้นทาง /admin
 };
