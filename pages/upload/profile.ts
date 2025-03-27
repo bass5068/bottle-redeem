@@ -1,42 +1,43 @@
-// import fs from "fs";
+import fs from "fs";
 import path from "path";
-import formidable from "formidable";
 import { NextApiRequest, NextApiResponse } from "next";
+import formidable from "formidable";
 
-// ปิดการ Parse Request Body โดย Next.js
+// ปิด body parser เดิมของ Next.js
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  // ปรับเพิ่มขนาดไฟล์ที่สามารถอัพโหลดได้ (เช่น 10MB)
-  const form = new formidable.IncomingForm({
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-    uploadDir: path.join(process.cwd(), "public/uploads/profiles"),
-    keepExtensions: true,
-  });
+  const uploadDir = path.join(process.cwd(), "public", "uploads");
+
+  // สร้างโฟลเดอร์ uploads ถ้ายังไม่มี
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const form = new formidable.IncomingForm({ uploadDir, keepExtensions: true });
 
   form.parse(req, (err, fields, files) => {
     if (err) {
-      console.error("Error uploading profile image:", err);
-      return res.status(500).json({ message: "Error uploading file" });
+      console.error("Formidable error:", err);
+      return res.status(500).json({ message: "Failed to parse form data" });
     }
 
-    if (!files.file) {
+    const file = files.file?.[0] || files.file;
+    if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    const file = Array.isArray(files.file) ? files.file[0] : files.file as formidable.File;
-    const fileName = path.basename(file.filepath);
-    const filePath = `/uploads/profiles/${fileName}`;
+
+    const filename = path.basename(Array.isArray(file) ? file[0].filepath : file.filepath);
+    const filePath = `/uploads/profiles/${filename}`; // เส้นทางที่ frontend ใช้แสดงรูป
+
     return res.status(200).json({ filePath });
   });
 }

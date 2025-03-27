@@ -27,24 +27,24 @@ export default function RewardTable() {
   };
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold text-center mb-6 text-green-600">Rewards</h2>
+    <div className="p-4 bg-white shadow-xl rounded-xl">
+      <h2 className="text-3xl font-bold text-center text-green-600 mb-6">🎁 รายการของรางวัล</h2>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse border border-gray-300">
-          <thead className="bg-gray-100">
+        <table className="min-w-full border-collapse border border-gray-300 rounded-md overflow-hidden">
+          <thead className="bg-green-100">
             <tr>
-              <th className="border px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Name
+              <th className="border px-4 py-3 text-left text-sm font-semibold text-green-800 whitespace-nowrap">
+                📦 ชื่อรางวัล
               </th>
-              <th className="border px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Points
+              <th className="border px-4 py-3 text-left text-sm font-semibold text-green-800 whitespace-nowrap">
+                💰 Coins ที่ใช้แลก
               </th>
-              <th className="border px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Stock
+              <th className="border px-4 py-3 text-left text-sm font-semibold text-green-800 whitespace-nowrap">
+                📦 สินค้าคงเหลือ
               </th>
-              <th className="border px-4 py-2 text-left text-sm font-semibold text-gray-700">
-                Actions
+              <th className="border px-4 py-3 text-left text-sm font-semibold text-green-800 whitespace-nowrap">
+                ⚙️ จัดการ
               </th>
             </tr>
           </thead>
@@ -55,21 +55,21 @@ export default function RewardTable() {
                   key={reward.id}
                   className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                 >
-                  <td className="border px-4 py-2 text-sm font-medium text-gray-800">
-                    {reward.name}
+                  <td className="border px-4 py-3 text-sm font-medium text-gray-900">
+                    🛍️ {reward.name}
                   </td>
-                  <td className="border px-4 py-2 text-sm text-gray-600">
-                    {reward.points}
+                  <td className="border px-4 py-3 text-sm text-yellow-600 font-semibold">
+                    {reward.points.toLocaleString()} Coins
                   </td>
-                  <td className="border px-4 py-2 text-sm text-gray-600">
-                    {reward.stock}
+                  <td className="border px-4 py-3 text-sm text-green-700 font-semibold">
+                    {reward.stock} ชิ้น
                   </td>
-                  <td className="border px-4 py-2 text-sm text-gray-600">
+                  <td className="border px-4 py-3 text-sm">
                     <button
                       onClick={() => deleteReward(reward.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
+                      className="bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition"
                     >
-                      Delete
+                      ลบสินค้า
                     </button>
                   </td>
                 </tr>
@@ -78,9 +78,9 @@ export default function RewardTable() {
               <tr>
                 <td
                   colSpan={4}
-                  className="text-center border px-4 py-4 text-gray-500"
+                  className="text-center border px-4 py-6 text-gray-500 text-base"
                 >
-                  No rewards available
+                  ⛔ ยังไม่มีรางวัลในระบบ
                 </td>
               </tr>
             )}

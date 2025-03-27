@@ -9,7 +9,6 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      points: number;
       role: Role;
     } & DefaultSession["user"];
   }
@@ -35,25 +34,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // ดึงข้อมูลจากฐานข้อมูล
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-        });
-        console.log("User from DB:", dbUser);
-
-        token.role = dbUser?.role; // ดึง role
-        token.id = user.id; // เพิ่ม id ลงใน JWT
-        token.points = dbUser?.points ?? 0; // ดึง points
+        token.id = user.id;
+        token.role = user.role;
       }
-      console.log("Token after JWT callback:", token);
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string; // ดึง id จาก JWT
-      session.user.role = token.role as Role; // ดึง role จาก JWT
-      session.user.points = token.points as number; // ดึง points จาก JWT
-      
-      console.log("Session after Session callback:", session);
+      if (session.user && token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as Role;
+      }
       return session;
     },
   },

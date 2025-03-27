@@ -8,64 +8,22 @@ export default function AccountForm() {
   const { data: session } = useSession();
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
-  const [previewImage, setPreviewImage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Placeholder: ใช้ข้อมูลเดิมจาก Session ก่อนเปลี่ยน
-  const placeholderName = session?.user?.name || "Your Name";
-  const placeholderImage =
-    session?.user?.image || "/default-profile.png"; // รูป default-profile.png ใส่ไว้ใน public folder
 
-  // ดึงข้อมูลจาก Database เพื่อมาเติมใน Form
   useEffect(() => {
     if (session?.user.id) {
       fetch(`/api/account?userId=${session.user.id}`)
         .then((res) => res.json())
         .then((data) => {
-          setName(data.name || placeholderName);
-          setImage(data.image || placeholderImage);
-          setPreviewImage(data.image || placeholderImage); // ใช้ preview จาก database หรือ placeholder
+          setName(data.name );
+          setImage(data.image);
         })
         .catch((error) =>
           console.error("Failed to fetch account data:", error)
         );
     }
-  }, [session, placeholderImage, placeholderName]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // แสดง Preview รูปภาพ
-      setPreviewImage(URL.createObjectURL(file));
-      uploadImage(file);
-    }
-  };
-
-  const uploadImage = async (file: File) => {
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/upload/profile", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const data = await response.json();
-      setImage(data.filePath); // เก็บ Path ของรูปที่อัพโหลดได้
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      alert("Failed to upload image.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [session,]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +64,7 @@ export default function AccountForm() {
 
       <div className="mb-6 flex justify-center">
         <Image
-          src={previewImage || placeholderImage}
+          src={image}
           alt="Profile Preview"
           className="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow-lg"
           width={128}
@@ -122,22 +80,26 @@ export default function AccountForm() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={placeholderName}
+          placeholder={name}
           className="w-full border border-gray-300 px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-green-500"
         />
       </div>
 
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className="block text-sm font-medium text-gray-600 mb-2">
-          Profile Picture
+          Profile Picture URL
         </label>
         <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
+          type="text"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          placeholder="https://example.com/image.jpg"
+          className="w-full border border-gray-300 px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-green-500"
         />
-      </div>
+        <p className="text-xs text-gray-500 mt-1">
+          ใช้ URL ของรูปจาก Google (หรือเว็บอื่น ๆ)
+        </p>
+      </div> */}
 
       <button
         type="submit"

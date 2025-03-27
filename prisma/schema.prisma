@@ -13,10 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -29,6 +26,10 @@ model User {
   sessions      Session[]
 
   Redemption Redemption[]
+}
+enum Role {
+  ADMIN
+  USER
 }
 
 
@@ -56,7 +57,6 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
