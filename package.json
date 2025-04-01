@@ -16,6 +16,8 @@
     "@types/formidable": "^3.4.5",
     "cloudinary": "^2.5.1",
     "formidable": "^3.5.2",
+    "html5-qrcode": "^2.3.8",
+    "lucide-react": "^0.486.0",
     "multiparty": "^4.2.3",
     "next": "15.1.6",
     "prisma": "^6.3.0",
