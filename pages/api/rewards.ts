@@ -31,7 +31,7 @@ async function RewardAPIGet(_: NextApiRequest, res: NextApiResponse) {
 
 // **POST /api/rewards**: Add a new reward
 async function RewardAPIPost(req: NextApiRequest, res: NextApiResponse) {
-  const { name, points, stock } = req.body;
+  const { name, points, stock, description } = req.body;
 
   if (!name || points == null || stock == null) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -43,6 +43,7 @@ async function RewardAPIPost(req: NextApiRequest, res: NextApiResponse) {
         name,
         points: parseInt(points),
         stock: parseInt(stock),
+        description: description || null, // Add description field
       },
     });
 
@@ -56,7 +57,7 @@ async function RewardAPIPost(req: NextApiRequest, res: NextApiResponse) {
 // **PUT /api/rewards?id={id}**: Update a reward
 async function RewardAPIPut(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-  const { name, points, stock } = req.body;
+  const { name, points, stock, description } = req.body;
 
   if (!id || typeof id !== "string") {
     return res.status(400).json({ error: "Invalid ID" });
@@ -69,6 +70,7 @@ async function RewardAPIPut(req: NextApiRequest, res: NextApiResponse) {
         name,
         points: parseInt(points),
         stock: parseInt(stock),
+        description: description || null, // Add description field
       },
     });
 

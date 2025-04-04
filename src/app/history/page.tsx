@@ -11,7 +11,7 @@ interface Redemption {
     image?: string;
   };
   createdAt: string;
-  status: string;
+  status: "PENDING" | "SHIPPED" | "COMPLETED"; // ปรับให้ตรงกับฝั่งแอดมิน
 }
 
 export default function UserHistory() {
@@ -21,6 +21,7 @@ export default function UserHistory() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user.id) {
@@ -46,10 +47,12 @@ export default function UserHistory() {
 
   const confirmReceived = async (id: string) => {
     try {
+      setUpdatingId(id);
+      // ใช้ endpoint เดียวกับฝั่งแอดมิน
       const response = await fetch("/api/redemptions/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ redemptionId: id, status: "COMPLETED" }),
+        body: JSON.stringify({ redemptionId: id, status: "COMPLETED" }), // ใช้ชื่อ parameter เดียวกับฝั่งแอดมิน
       });
 
       if (!response.ok) {
@@ -75,6 +78,8 @@ export default function UserHistory() {
       console.error("Failed to update redemption status:", error);
       setError("ไม่สามารถอัพเดทสถานะได้");
       setTimeout(() => setError(null), 3000);
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -283,24 +288,37 @@ export default function UserHistory() {
                         {item.status === "SHIPPED" && (
                           <div className="mt-4">
                             <button
+                              disabled={updatingId === item.id}
                               onClick={() => confirmReceived(item.id)}
-                              className="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              className="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-70"
                             >
-                              <svg 
-                                className="mr-2 h-4 w-4" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24" 
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth="2" 
-                                  d="M5 13l4 4L19 7"
-                                ></path>
-                              </svg>
-                              ยืนยันการรับสินค้า
+                              {updatingId === item.id ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  กำลังยืนยัน...
+                                </>
+                              ) : (
+                                <>
+                                  <svg 
+                                    className="mr-2 h-4 w-4" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round" 
+                                      strokeWidth="2" 
+                                      d="M5 13l4 4L19 7"
+                                    ></path>
+                                  </svg>
+                                  ยืนยันการรับสินค้า
+                                </>
+                              )}
                             </button>
                           </div>
                         )}

@@ -12,6 +12,24 @@ interface Reward {
   stock: number;
 }
 
+// ฟังก์ชันสำหรับแปลง Cloudinary URL เพื่อปรับขนาดและคุณภาพอัตโนมัติ
+const optimizeCloudinaryUrl = (url: string, options: { width?: number; height?: number; quality?: number } = {}): string => {
+  if (!url || !url.includes('cloudinary.com')) return url || '/placeholder.png';
+  
+  const { width = 400, height = 0, quality = 'auto' } = options;
+  
+  // แยก URL เพื่อแทรก transformations
+  const parts = url.split('/upload/');
+  
+  // สร้าง transformation string
+  let transformations = 'c_fill,f_auto';
+  if (width > 0) transformations += `,w_${width}`;
+  if (height > 0) transformations += `,h_${height}`;
+  transformations += `,q_${quality}`;
+  
+  return `${parts[0]}/upload/${transformations}/${parts[1]}`;
+};
+
 export default function RewardsPage() {
   const { data: session } = useSession();
   const [rewards, setRewards] = useState<Reward[]>([]);
@@ -106,9 +124,13 @@ export default function RewardsPage() {
       // แสดงข้อความสำเร็จ
       setErrorMessage("🎉 แลกรางวัลสำเร็จ! ตรวจสอบสถานะการจัดส่งได้ในประวัติการแลก");
       setTimeout(() => setErrorMessage(null), 5000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error redeeming reward:", error);
-      setErrorMessage(error.message || "ไม่สามารถแลกรางวัลได้ กรุณาลองใหม่อีกครั้ง");
+      if (error instanceof Error) {
+        setErrorMessage(error.message || "ไม่สามารถแลกรางวัลได้ กรุณาลองใหม่อีกครั้ง");
+      } else {
+        setErrorMessage("ไม่สามารถแลกรางวัลได้ กรุณาลองใหม่อีกครั้ง");
+      }
       setTimeout(() => setErrorMessage(null), 3000);
       setShowModal(false);
     }
@@ -197,9 +219,10 @@ export default function RewardsPage() {
                       <div className="relative h-48 overflow-hidden">
                         {reward.image ? (
                           <img
-                            src={reward.image}
+                            src={optimizeCloudinaryUrl(reward.image, { width: 480, height: 360, quality: 'auto' })}
                             alt={reward.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            loading="lazy"
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-green-200 to-green-300 flex items-center justify-center">
@@ -280,7 +303,15 @@ export default function RewardsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white w-20 h-20 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
-              <span className="text-4xl">🎁</span>
+              {selectedReward.image ? (
+                <img 
+                  src={optimizeCloudinaryUrl(selectedReward.image, { width: 100, height: 100 })} 
+                  alt={selectedReward.name} 
+                  className="w-16 h-16 object-cover rounded-full"
+                />
+              ) : (
+                <span className="text-4xl">🎁</span>
+              )}
             </div>
             
             <button

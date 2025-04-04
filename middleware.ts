@@ -1,14 +1,17 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
-export async function middleware(req) {
+export async function middleware(req: NextRequest) {
   const token = await getToken({ req });
   const url = req.nextUrl.clone();
 
-  // ตรวจสอบเฉพาะเส้นทางที่เริ่มต้นด้วย "/admin"
   if (url.pathname.startsWith("/admin")) {
-    // ถ้าไม่มี Token หรือ role ไม่ใช่ admin ให้ Redirect ไปหน้าแรก
-    if (!token || token.role !== "admin") {
+    console.log("Token in Middleware:", token);
+    
+    // แก้ตรงนี้: ตรวจสอบ 'ADMIN' ด้วยเพื่อให้ตรงกับค่าในฐานข้อมูล
+    if (!token || (token.role !== "ADMIN" && token.role !== "admin")) {
+      console.log("Unauthorized access to admin page, redirecting");
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
@@ -18,5 +21,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"], // ใช้ Middleware เฉพาะเส้นทาง /admin/*
+  matcher: ["/admin/:path*"],
 };

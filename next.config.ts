@@ -1,13 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
   images: {
-    domains: ['lh3.googleusercontent.com', 'your-image-domain.com'],
+    domains: [
+      'lh3.googleusercontent.com', // สำหรับรูปจาก Google
+      'res.cloudinary.com', // ถ้าใช้ Cloudinary
+      // เพิ่ม domain อื่นๆ ตามที่ใช้
+    ],
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "10mb", // เพิ่มขนาดเป็น 10MB หรือปรับตามที่ต้องการ
-    },
+  
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Large-Allocation',
+            value: 'true',
+          },
+        ],
+      },
+    ]
   },
 };
 

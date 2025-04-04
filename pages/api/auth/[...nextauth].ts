@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import NextAuth, { DefaultSession, NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -10,20 +10,20 @@ declare module "next-auth" {
     user: {
       id: string;
       points: number;
-      role: Role;
+      role: string;
     } & DefaultSession["user"];
   }
 
   interface User {
     id: string;
-    role: Role;
+    role: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
-    role?: Role;
+    role?: string;
     points?: number;
   }
 }
@@ -37,21 +37,25 @@ export const authOptions: NextAuthOptions = {
   ],
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
+  
+  // เปลี่ยนเป็น JWT เพื่อไม่ให้เกิดปัญหา HTTP 431
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 วัน
   },
+  
   callbacks: {
+    // เพิ่ม JWT callback
     async jwt({ token, user }) {
       if (user) {
-        // ดึงเฉพาะข้อมูลที่จำเป็นจากฐานข้อมูล (ไม่รวม image)
+        // ดึงเฉพาะข้อมูลที่จำเป็นจากฐานข้อมูล
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: {
             id: true,
             role: true,
             points: true,
-            // ไม่ select ฟิลด์ image เพื่อหลีกเลี่ยงข้อมูลขนาดใหญ่
+            // ไม่ดึง image เพื่อลดขนาด token
           }
         });
         
@@ -65,15 +69,16 @@ export const authOptions: NextAuthOptions = {
     },
     
     async session({ session, token }) {
-      // ใส่ข้อมูลจำเป็นใน session
-      if (session.user) {
+      if (session.user && token) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+        session.user.role = token.role as string;
         session.user.points = token.points as number || 0;
       }
       return session;
     },
   },
+  
+  debug: process.env.NODE_ENV === "development",
 };
 
 export default NextAuth(authOptions);
