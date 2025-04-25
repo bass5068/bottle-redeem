@@ -16,7 +16,7 @@ export default function QRCodeScannerWithPoints({
 
   useEffect(() => {
     const scanner = new Html5QrcodeScanner("reader", {
-      fps: 10,
+      fps: 24,
       qrbox: 250,
     }, false);
 
