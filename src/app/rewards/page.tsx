@@ -219,7 +219,7 @@ export default function RewardsPage() {
                       <div className="relative h-48 overflow-hidden">
                         {reward.image ? (
                           <img
-                            src={optimizeCloudinaryUrl(reward.image, { width: 480, height: 360, quality: 'auto' })}
+                            src={optimizeCloudinaryUrl(reward.image, { width: 480, height: 360, })}
                             alt={reward.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             loading="lazy"
