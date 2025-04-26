@@ -94,3 +94,23 @@ enum Status {
   PENDING  // รอรับของ
   COMPLETED // ได้รับของแล้ว
 }
+
+
+// enum TokenStatus {
+//   unused
+//   used
+//   expired
+// }
+
+model QRToken {
+  id          String      @id @default(cuid())
+  token       String      @unique
+  // tokenStatus TokenStatus @default(unused)
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime
+  updatedAt   DateTime    @updatedAt
+  used Boolean @default(false) // เพิ่มฟิลด์ used
+  PETbig      Int         @default(0) // Add this field
+  PETsmall    Int         @default(0) // Add this field
+  points      Int         @default(0) // Add the points field
+}
