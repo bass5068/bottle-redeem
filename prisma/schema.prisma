@@ -95,16 +95,25 @@ enum Status {
   COMPLETED // ได้รับของแล้ว
 }
 
+<<<<<<< HEAD
 
 // enum TokenStatus {
 //   unused
 //   used
 //   expired
 // }
+=======
+enum TokenStatus {
+  unused
+  used
+  expired
+}
+>>>>>>> origin/dev-1
 
 model QRToken {
   id          String      @id @default(cuid())
   token       String      @unique
+<<<<<<< HEAD
   // tokenStatus TokenStatus @default(unused)
   createdAt   DateTime    @default(now())
   expiresAt   DateTime
@@ -113,4 +122,10 @@ model QRToken {
   PETbig      Int         @default(0) // Add this field
   PETsmall    Int         @default(0) // Add this field
   points      Int         @default(0) // Add the points field
+=======
+  tokenStatus TokenStatus @default(unused)
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+>>>>>>> origin/dev-1
 }
