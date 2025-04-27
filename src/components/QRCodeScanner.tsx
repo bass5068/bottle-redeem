@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import axios from "axios";
@@ -28,16 +27,14 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
-    if (!scanResult) {
-      initializeScanner();
-    }
-
+    initializeScanner();
     return () => {
       scannerRef.current?.clear().catch(() => {});
     };
-  }, [scanResult]);
+  }, []);
 
   const initializeScanner = () => {
+    if (scannerRef.current) return; // ป้องกัน initialize ซ้ำ
     const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 }, false);
     scannerRef.current = scanner;
 
@@ -47,28 +44,43 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
   };
 
   const handleScan = async (decodedText: string) => {
-    setScanResult(decodedText);
-    console.log("QR Code scanned:", decodedText);
+    if (!decodedText || decodedText.trim() === "") {
+      console.warn("Empty decodedText, ignoring...");
+      return;
+    }
 
     try {
-      const queryText = decodedText.includes("?") ? decodedText.split("?")[1] : decodedText;
-      const params = new URLSearchParams(queryText);
-      const PETbig = parseInt(params.get("PETbig") || "0", 10);
-      const PETsmall = parseInt(params.get("PETsmall") || "0", 10);
-      const token = params.get("token");
+      console.log("Raw decodedText:", decodedText);
 
-      if (!token) {
-        return setMessage("❌ ไม่พบ token ใน QR Code");
+      const queryText = decodedText.includes("?") ? decodedText.split("?")[1] : decodedText;
+      const params = queryText.split(";").reduce((acc, pair) => {
+        const [key, value] = pair.split(":");
+        acc[key] = value;
+        return acc;
+      }, {} as { [key: string]: string });
+
+      const token = params.token;
+      if (!token || token.trim() === "") {
+        setMessage("❌ ไม่พบ token ใน QR Code");
+        return;
       }
+
+      if (!decodedText.includes("token:")) {
+        console.warn("Invalid QR format, ignoring...");
+        return;
+      }
+
+      const PETbig = parseInt(params.big || "0", 10);
+      const PETsmall = parseInt(params.small || "0", 10);
 
       const isValid = await validateToken(token);
       if (!isValid) {
-        return setMessage("❌ Token ไม่ถูกต้องหรือหมดอายุ");
+        setMessage("❌ Token ไม่ถูกต้องหรือหมดอายุ");
+        return;
       }
 
       const points = calculatePoints(PETbig, PETsmall);
       setBottleDetails({ big: PETbig, small: PETsmall, points });
-      setMessage(`✅ ขวดใหญ่ ${PETbig} (${PETbig * 200} คะแนน), ขวดเล็ก ${PETsmall} (${PETsmall * 100} คะแนน), รวม ${points} คะแนน`);
 
       if (userId && points > 0) {
         setLoading(true);
@@ -80,7 +92,13 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
         } finally {
           setLoading(false);
         }
+      } else {
+        setMessage(`✅ ขวดใหญ่ ${PETbig} (${PETbig * 200} คะแนน), ขวดเล็ก ${PETsmall} (${PETsmall * 100} คะแนน), รวม ${points} คะแนน`);
       }
+
+      setScanResult(decodedText); // ✅ ตั้งค่า scanResult หลังจากอ่านสำเร็จ
+      scannerRef.current?.clear().catch(() => {}); // ✅ clear scanner หลังสแกนสำเร็จ
+
     } catch (error) {
       console.error("Parsing error:", error);
       setMessage("❌ ไม่สามารถอ่านข้อมูล QR ได้");
@@ -89,8 +107,6 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
     if (onScanSuccess) {
       onScanSuccess(decodedText);
     }
-
-    scannerRef.current?.clear();
   };
 
   const calculatePoints = (big: number, small: number) => big * 200 + small * 100;
@@ -105,7 +121,7 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
   };
 
   const addPointsToUser = async (userId: string, points: number, token: string): Promise<AddPointsResponse> => {
-    const res = await axios.post("/api/addPoints", { userId, points, token });
+    const res = await axios.post("/api/pointADD", { userId, points, token });
     return res.data;
   };
 
@@ -113,25 +129,27 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
     setScanResult(null);
     setMessage("");
     setBottleDetails({ big: 0, small: 0, points: 0 });
+    scannerRef.current = null; // reset scannerRef
+    initializeScanner(); // สั่ง initialize ใหม่
   };
 
   return (
     <div className="qr-scanner-container">
-      <div id="reader"></div>
-      
+      {!scanResult && <div id="reader"></div>}
+
       {loading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
           <p>กำลังประมวลผล...</p>
         </div>
       )}
-      
+
       {message && (
         <div className="scan-message">
           {message}
         </div>
       )}
-      
+
       {scanResult && (
         <div className="scan-result">
           <h3>รายละเอียดการรับคะแนน</h3>
@@ -151,20 +169,19 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
               <span className="bottle-value">{bottleDetails.points} คะแนน</span>
             </div>
           </div>
-          
+
           <div className="qr-value">
             <details>
               <summary>แสดงข้อมูล QR Code</summary>
               <p className="qr-text">{scanResult}</p>
             </details>
           </div>
-          
+
           <button className="rescan-button" onClick={handleRescan}>
             สแกนใหม่
           </button>
         </div>
       )}
-      
       <style jsx>{`
         .qr-scanner-container {
           color: #000;
@@ -275,6 +292,8 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
           background: #2563eb;
         }
       `}</style>
+
+      {/* เอา style เดิมที่คุณมีมาแปะตรงนี้ได้เลย */}
     </div>
   );
 }
