@@ -1,5 +1,7 @@
+// /../pages/api/routers/add-points.ts
+
 import { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../lib/prisma";
+import prisma from "../../../lib/prisma"; // ปรับให้ตรงกับโปรเจกต์ของคุณ
 
 
 export default async function AddPointsAPI(

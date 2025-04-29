@@ -1,12 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../lib/prisma";
+import prisma from "../../../lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]";
+import { authOptions } from "../../api/auth/[...nextauth]";
 
 // Define the Status type
 type Status = "PENDING" | "SHIPPED" | "COMPLETED";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function update_data(req: NextApiRequest, res: NextApiResponse) {
   // เฉพาะ PUT method เท่านั้น
   if (req.method !== "PUT") {
     return res.status(405).json({ message: "Method not allowed" });

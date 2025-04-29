@@ -1,5 +1,6 @@
+// src: src/app/redeem-qr/page.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import QRCodeScanner from "@/components/QRCodeScanner";
@@ -8,30 +9,40 @@ export default function RedeemQRPage() {
   const { data: session } = useSession();
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("idle"); // idle, loading, success, error
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!session) {
+      router.push("/auth/login"); // แก้ไขเพื่อให้การเปลี่ยนเส้นทางเกิดใน useEffect
+    }
+  }, [session, router]);
+
 
   const handleScan = async (code: string) => {
     setMessage("กำลังแลกคะแนน...");
     setStatus("loading");
 
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-    
-    const userId = session.user.id; // ดึง userId ของคนที่ login ออกมา
-    const router = useRouter();
+    const userId = session?.user?.id; // ดึง userId ของคนที่ login ออกมา
+
     if (!session) {
       router.push("/auth/login");
       return null;
     }
+
+    if (!session?.user?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
     try {
-      const res = await fetch("/api/pointADD", {
+      const res = await fetch("/api/routers/add-points", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: code, userId }),
+        body: JSON.stringify({ userId }),
       });
 
       const data = await res.json();
+
 
       if (data.success) {
         console.log("เพิ่มคะแนนสำเร็จ:", data.totalPoints);

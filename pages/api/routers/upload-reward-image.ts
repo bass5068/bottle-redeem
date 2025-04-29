@@ -42,7 +42,7 @@ const parseForm = async (
   });
 };
 
-export default async function handler(
+export default async function up_reward_img(
   req: NextApiRequest, 
   res: NextApiResponse
 ) {

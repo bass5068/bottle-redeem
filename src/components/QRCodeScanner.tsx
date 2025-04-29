@@ -1,11 +1,9 @@
+// src/components/QRCodeScanner.tsx
+
 import { useEffect, useState, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import axios from "axios";
-
-interface Props {
-  userId: string;
-  onScanSuccess?: (decodedText: string) => void;
-}
+import { useSession } from "next-auth/react";
 
 interface BottleDetails {
   big: number;
@@ -18,7 +16,8 @@ interface AddPointsResponse {
   [key: string]: unknown;
 }
 
-export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props) {
+export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSuccess?: (decodedText: string) => void }) {
+  const { data: session } = useSession();
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -43,7 +42,12 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
     });
   };
 
+
   const handleScan = async (decodedText: string) => {
+
+    const userId = session?.user?.id; // ดึงจาก session ที่ถูกต้อง
+
+    
     if (!decodedText || decodedText.trim() === "") {
       console.warn("Empty decodedText, ignoring...");
       return;
@@ -85,7 +89,7 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
       if (userId && points > 0) {
         setLoading(true);
         try {
-          const response = await addPointsToUser(userId, points, token);
+          const response = await addPointsToUser(userId, points);
           setMessage(`🎉 เพิ่มคะแนนสำเร็จ: ${points} คะแนน - ${response.message}`);
         } catch (err: any) {
           setMessage(err.message || "เกิดข้อผิดพลาดในการเพิ่มคะแนน");
@@ -113,17 +117,18 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
 
   const validateToken = async (token: string): Promise<boolean> => {
     try {
-      const res = await axios.post("/api/validate-token", { token });
+      const res = await axios.post("/api/routers/validate-token", { token });
       return res.data.valid;
     } catch {
       return false;
     }
   };
 
-  const addPointsToUser = async (userId: string, points: number, token: string): Promise<AddPointsResponse> => {
-    const res = await axios.post("/api/pointADD", { userId, points, token });
+  const addPointsToUser = async (userId: string, points: number): Promise<AddPointsResponse> => {
+    const res = await axios.post("/api/routers/add-points", { userId, points });
     return res.data;
   };
+  
 
   const handleRescan = () => {
     setScanResult(null);
