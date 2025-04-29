@@ -1,6 +1,7 @@
 // src: src/app/redeem-qr/page.tsx
 "use client";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import QRCodeScanner from "@/components/QRCodeScanner";
@@ -12,10 +13,10 @@ export default function RedeemQRPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!session) {
-      router.push("/auth/login"); // แก้ไขเพื่อให้การเปลี่ยนเส้นทางเกิดใน useEffect
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
     }
-  }, [session, router]);
+  }, [status, router]);
 
 
   const handleScan = async (code: string) => {
@@ -24,25 +25,52 @@ export default function RedeemQRPage() {
 
     const userId = session?.user?.id; // ดึง userId ของคนที่ login ออกมา
 
-    if (!session) {
-      router.push("/auth/login");
-      return null;
-    }
-
     if (!session?.user?.id) {
       console.error("User not authenticated");
       return;
     }
+    
+      // 🔽 แปลง QR code string เป็น object
+    const params = Object.fromEntries(
+      code.split(";").map((pair) => {
+        const [key, value] = pair.split(":");
+        return [key.trim(), value.trim()];
+      })
+    );
+
+    const token = params.token;
+    const small = parseInt(params.small || "0", 10);
+    const big = parseInt(params.big || "0", 10);
+
+    const calculatePoints = (big: number, small: number) => big * 200 + small * 100;
+    
+    if (!token) {
+      setMessage("QR Code ไม่ถูกต้อง");
+      setStatus("error");
+      return;
+    }
 
     try {
-      const res = await fetch("/api/routers/add-points", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+      // เรียก API เพื่อเพิ่มคะแนน
+      // const res = await fetch("/api/routers/add-points", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     userId,
+      //     points: calculatePoints(big, small)
+      //   }),
+      // });
+
+      const points = calculatePoints(big, small);
+      const res = await axios.post("/api/routers/add-points", {
+        userId,
+        points,
       });
 
-      const data = await res.json();
 
+      console.log(calculatePoints(big, small), "points");
+  
+      const data = res.data;
 
       if (data.success) {
         console.log("เพิ่มคะแนนสำเร็จ:", data.totalPoints);
@@ -50,7 +78,7 @@ export default function RedeemQRPage() {
         console.error(data.error);
       }
 
-      if (res.ok) {
+      if (res.status >= 200 && res.status < 300) {
         setMessage(`แลกสำเร็จ ${data.points} Coins`);
         setStatus("success");
       } else {

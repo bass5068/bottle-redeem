@@ -22,6 +22,7 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [bottleDetails, setBottleDetails] = useState<BottleDetails>({ big: 0, small: 0, points: 0 });
+  const [response, setResponse] = useState<AddPointsResponse>({ message: "" });
 
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
@@ -89,7 +90,6 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
       if (userId && points > 0) {
         setLoading(true);
         try {
-          const response = await addPointsToUser(userId, points);
           setMessage(`🎉 เพิ่มคะแนนสำเร็จ: ${points} คะแนน - ${response.message}`);
         } catch (err: any) {
           setMessage(err.message || "เกิดข้อผิดพลาดในการเพิ่มคะแนน");
@@ -124,11 +124,6 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
     }
   };
 
-  const addPointsToUser = async (userId: string, points: number): Promise<AddPointsResponse> => {
-    const res = await axios.post("/api/routers/add-points", { userId, points });
-    return res.data;
-  };
-  
 
   const handleRescan = () => {
     setScanResult(null);

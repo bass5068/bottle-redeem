@@ -1,68 +1,32 @@
+// src/pages/api/routers/add-points.ts
 
-// /pages/api/add-points.ts
 import { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+interface AddPointsRequestBody {
+  points: number;
+}
 
-export default async function pointADD(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+const addPoints = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (req.method === "POST") {
+    const { points }: AddPointsRequestBody = req.body;
 
-  const { userId, points, token } = req.body;
-
-  if (!userId || !points || !token) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-
-  try {
-    // ตรวจสอบว่า token มีอยู่ในฐานข้อมูลหรือไม่ และยังไม่ถูกใช้
-    const tokenRecord = await prisma.qRToken.findUnique({
-      where: { token },
-    });
-
-    if (!tokenRecord || tokenRecord.used) {
-      return res.status(400).json({ error: "Invalid or already used token" });
+    if (points <= 0) {
+      return res.status(400).json({ message: "ข้อมูลไม่ถูกต้อง" });
     }
 
-    // เพิ่มคะแนนให้ user
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        points: {
-          increment: points,
-        },
-      },
-    });
-
-
-    // ✅ อัปเดต token เป็นใช้แล้ว
-    await prisma.qRToken.update({
-      where: { token },
-      data: {
-        used: true,
-      }
-    });
-
-    console.log("API called with", { userId, points, token });
-    console.log("Request body:", { userId, points, token });
-    console.log("Found token record:", tokenRecord);
-    console.log("User before update:", await prisma.user.findUnique({ where: { id: userId } }));
-
-
-
-    return res.status(200).json({
-      success: true,
-      message: "เพิ่มคะแนนเรียบร้อยแล้ว",
-      totalPoints: updatedUser.points,
-      points,
-    });
-
-  } catch (err) {
-    console.error("Error in /api/pointADD:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    try {
+      // ไม่อัปเดตฐานข้อมูล แค่ส่งค่าคะแนนที่เพิ่มขึ้น
+      return res.status(200).json({
+        message: `เพิ่ม ${points} คะแนนสำเร็จ`,
+        points: points, // ส่งค่าคะแนนที่เพิ่มขึ้น
+      });
+    } catch (error) {
+      console.error("Error adding points:", error);
+      return res.status(500).json({ message: "เกิดข้อผิดพลาดในการเพิ่มคะแนน" });
+    }
+  } else {
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
-  
-}
+};
+
+export default addPoints;
