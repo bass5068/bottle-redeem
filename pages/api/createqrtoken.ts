@@ -6,7 +6,7 @@ async function createQRToken() {
   const newToken = await prisma.qRToken.create({
     data: {
       token: generateRandomToken(), // ฟังก์ชันสำหรับสร้าง token
-      tokenStatus: 'unused',
+      used: false,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // Set expiration to 15 min  from now
     },
   });
