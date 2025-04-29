@@ -179,7 +179,7 @@ export default function QRCodeScannerWithPoints({
   ): Promise<AddPointsResponse> => {
     try {
       // เรียกใช้ API AddPointsAPI
-      const response = await axios.post<AddPointsResponse>('/api/addPoints', {
+      const response = await axios.post<AddPointsResponse>('/api/add-points', {
         userId,
         points,
         token
