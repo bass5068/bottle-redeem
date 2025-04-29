@@ -10,17 +10,10 @@ interface Reward {
   stock: number;
 }
 
-interface NewsItem {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-}
 
 export default function HomePage() {
   const [stats, setStats] = useState({ users: 0, redeemed: 0, coinsUsed: 0 });
   const [recommended, setRecommended] = useState<Reward[]>([]);
-  const [news, setNews] = useState<NewsItem[]>([]);
   const [newItems, setNewItems] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState("");
@@ -28,7 +21,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, recommendedRes, newsRes, newItemsRes] = await Promise.all([
+        const [statsRes, recommendedRes, newItemsRes] = await Promise.all([
           fetch("/api/stats").then(res => res.json()),
           fetch("/api/rewards/").then(res => res.json()),
           fetch("/api/news").then(res => res.json()),
@@ -37,7 +30,6 @@ export default function HomePage() {
 
         setStats(statsRes);
         setRecommended(recommendedRes);
-        setNews(newsRes);
         setNewItems(newItemsRes);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -160,7 +152,6 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 font-medium">ผู้ใช้งานทั้งหมด</p>
                   <div className="flex items-baseline">
                     <p className="text-3xl font-bold text-gray-800">{stats.users.toLocaleString()}</p>
-                    <span className="ml-2 text-green-500 text-sm font-medium">+12%</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">เพิ่มขึ้นจากเดือนที่แล้ว</p>
                 </div>
@@ -178,7 +169,6 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 font-medium">Coins ใช้ไปแล้ว</p>
                   <div className="flex items-baseline">
                     <p className="text-3xl font-bold text-gray-800">{stats.coinsUsed.toLocaleString()}</p>
-                    <span className="ml-2 text-green-500 text-sm font-medium">+28%</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">เพิ่มขึ้นจากเดือนที่แล้ว</p>
                 </div>
@@ -196,7 +186,6 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 font-medium">ของรางวัลถูกแลก</p>
                   <div className="flex items-baseline">
                     <p className="text-3xl font-bold text-gray-800">{stats.redeemed.toLocaleString()}</p>
-                    <span className="ml-2 text-green-500 text-sm font-medium">+18%</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">เพิ่มขึ้นจากเดือนที่แล้ว</p>
                 </div>
@@ -285,66 +274,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* News Section ที่ปรับปรุงแล้ว */}
-        <div id="news-section" className={`animate-section mb-20 transition-opacity duration-700 ${activeSection === "news-section" ? "opacity-100" : "opacity-90"}`}>
-          <div className="flex items-center mb-8">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-2xl">📢</span>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-              ข่าวสาร<span className="text-blue-500 ml-2">และกิจกรรม</span>
-            </h2>
-            <div className="ml-auto">
-              <Link 
-                href="/news" 
-                className="text-blue-600 hover:text-blue-700 font-medium flex items-center bg-blue-50 px-4 py-2 rounded-lg transition-colors hover:bg-blue-100"
-              >
-                ข่าวทั้งหมด
-                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </Link>
-            </div>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {news.map((n, index) => (
-              <div 
-                key={n.id} 
-                className={`bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
-              >
-                <div className={`h-2 ${index % 2 === 0 ? 'bg-blue-500' : 'bg-green-500'}`}></div>
-                <div className="p-6">
-                  <div className="flex items-start">
-                    <div className={`${index % 2 === 0 ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'} p-3 rounded-lg mr-4 flex-shrink-0`}>
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="flex items-center mb-1">
-                        <h4 className="font-bold text-lg text-gray-800">{n.title}</h4>
-                        <span className="ml-3 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                          {n.date}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 line-clamp-3 mb-4">{n.content}</p>
-                      <Link 
-                        href={`/news/${n.id}`} 
-                        className={`inline-flex items-center text-sm font-medium ${index % 2 === 0 ? 'text-blue-600 hover:text-blue-700' : 'text-green-600 hover:text-green-700'}`}
-                      >
-                        อ่านเพิ่มเติม
-                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                        </svg>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* New Items Section ที่ปรับปรุงแล้ว */}
         <div id="new-items-section" className={`animate-section transition-opacity duration-700 ${activeSection === "new-items-section" ? "opacity-100" : "opacity-90"}`}>
@@ -432,9 +361,6 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/rewards" className="bg-white text-green-600 px-6 py-3 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
               เริ่มต้นใช้งาน
-            </Link>
-            <Link href="/about" className="bg-transparent text-white border border-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 transition-all">
-              เรียนรู้เพิ่มเติม
             </Link>
           </div>
         </div>

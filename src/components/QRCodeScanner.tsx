@@ -1,11 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import axios from "axios";
-
-interface Props {
-  userId: string;
-  onScanSuccess?: (decodedText: string) => void;
-}
+import { useSession } from "next-auth/react";
 
 interface BottleDetails {
   big: number;
@@ -15,13 +11,24 @@ interface BottleDetails {
 
 interface AddPointsResponse {
   message: string;
-  [key: string]: unknown;
+  user?: {
+    id: string;
+    name?: string;
+    email?: string;
+  };
+  error?: string;
 }
 
-export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props) {
+export default function QRCodeScannerWithPoints({ 
+  onScanSuccess 
+}: { 
+  onScanSuccess?: (decodedText: string) => void 
+}) {
+  const { data: session } = useSession();
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [bottleDetails, setBottleDetails] = useState<BottleDetails>({ big: 0, small: 0, points: 0 });
 
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
@@ -29,18 +36,74 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
   useEffect(() => {
     initializeScanner();
     return () => {
-      scannerRef.current?.clear().catch(() => {});
+      if (scannerRef.current) {
+        try {
+          scannerRef.current.clear();
+        } catch (error) {
+          console.error("Error clearing scanner:", error);
+        }
+      }
     };
   }, []);
 
   const initializeScanner = () => {
     if (scannerRef.current) return; // ป้องกัน initialize ซ้ำ
-    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 }, false);
-    scannerRef.current = scanner;
+    
+    try {
+      const scanner = new Html5QrcodeScanner(
+        "reader", 
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          rememberLastUsedCamera: true,
+        }, 
+        false
+      );
+      
+      scannerRef.current = scanner;
 
-    scanner.render(handleScan, (error) => {
-      console.warn("Scan error:", error);
-    });
+      scanner.render(handleScan, (error) => {
+        console.warn("Scan error:", error);
+      });
+    } catch (error) {
+      console.error("Scanner initialization error:", error);
+      setError("ไม่สามารถเริ่มต้นกล้องได้ โปรดตรวจสอบการอนุญาตกล้อง");
+    }
+  };
+
+  const parseQrCode = (decodedText: string) => {
+    try {
+      // รองรับทั้งรูปแบบ URL query string และ custom format
+      if (decodedText.includes("?")) {
+        // รูปแบบ URL: "example.com?token=123&big=1&small=2"
+        const queryText = decodedText.split("?")[1];
+        const urlParams = new URLSearchParams(queryText);
+        
+        return {
+          token: urlParams.get("token") || "",
+          big: parseInt(urlParams.get("big") || "0", 10),
+          small: parseInt(urlParams.get("small") || "0", 10)
+        };
+      } else {
+        // รูปแบบ custom: "token:123;big:1;small:2"
+        const params = decodedText.split(";").reduce((acc, pair) => {
+          const [key, value] = pair.split(":");
+          if (key && value) {
+            acc[key.trim()] = value.trim();
+          }
+          return acc;
+        }, {} as { [key: string]: string });
+        
+        return {
+          token: params.token || "",
+          big: parseInt(params.big || "0", 10),
+          small: parseInt(params.small || "0", 10)
+        };
+      }
+    } catch (error) {
+      console.error("QR parsing error:", error);
+      throw new Error("รูปแบบ QR Code ไม่ถูกต้อง");
+    }
   };
 
   const handleScan = async (decodedText: string) => {
@@ -50,107 +113,128 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
     }
 
     try {
-<<<<<<< HEAD
-      // เรียกใช้ API AddPointsAPI
-      const response = await axios.post<AddPointsResponse>('/api/add-points', {
-        userId,
-        points,
-        token
-      } as AddPointsRequest);
-      
-      console.log("API Response:", response.data);
-      return response.data;
-    } catch (error: unknown) {
-      console.error("Error adding points:", error);
-      if (axios.isAxiosError(error) && error.response?.data?.error) {
-        throw new Error(error.response.data.error);
-      } else {
-        throw new Error(
-          "เกิดข้อผิดพลาดในการเพิ่มคะแนน โปรดลองอีกครั้งหรือติดต่อผู้ดูแลระบบ"
-        );
-=======
       console.log("Raw decodedText:", decodedText);
+      setLoading(true);
+      setError(null);
+      
+      // แยกข้อมูลจาก QR Code
+      const parsedData = parseQrCode(decodedText);
+      const { token, big: PETbig, small: PETsmall } = parsedData;
 
-      const queryText = decodedText.includes("?") ? decodedText.split("?")[1] : decodedText;
-      const params = queryText.split(";").reduce((acc, pair) => {
-        const [key, value] = pair.split(":");
-        acc[key] = value;
-        return acc;
-      }, {} as { [key: string]: string });
-
-      const token = params.token;
       if (!token || token.trim() === "") {
-        setMessage("❌ ไม่พบ token ใน QR Code");
-        return;
->>>>>>> origin/dev-kim-v2
-      }
-
-      if (!decodedText.includes("token:")) {
-        console.warn("Invalid QR format, ignoring...");
+        setError("ไม่พบ token ใน QR Code");
+        setLoading(false);
         return;
       }
 
-      const PETbig = parseInt(params.big || "0", 10);
-      const PETsmall = parseInt(params.small || "0", 10);
-
+      // ตรวจสอบความถูกต้องของ token
       const isValid = await validateToken(token);
       if (!isValid) {
-        setMessage("❌ Token ไม่ถูกต้องหรือหมดอายุ");
+        setError("Token ไม่ถูกต้องหรือหมดอายุ");
+        setLoading(false);
         return;
       }
 
+      // คำนวณคะแนน
       const points = calculatePoints(PETbig, PETsmall);
       setBottleDetails({ big: PETbig, small: PETsmall, points });
 
-      if (userId && points > 0) {
-        setLoading(true);
-        try {
-          const response = await addPointsToUser(userId, points, token);
-          setMessage(`🎉 เพิ่มคะแนนสำเร็จ: ${points} คะแนน - ${response.message}`);
-        } catch (err: any) {
-          setMessage(err.message || "เกิดข้อผิดพลาดในการเพิ่มคะแนน");
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setMessage(`✅ ขวดใหญ่ ${PETbig} (${PETbig * 200} คะแนน), ขวดเล็ก ${PETsmall} (${PETsmall * 100} คะแนน), รวม ${points} คะแนน`);
+      const userId = session?.user?.id;
+      
+      // ตรวจสอบว่ามี user login อยู่หรือไม่
+      if (!userId) {
+        setMessage("โปรดเข้าสู่ระบบก่อนรับคะแนน");
+        setLoading(false);
+        setScanResult(decodedText);
+        scannerRef.current?.clear().catch(() => {});
+        return;
       }
 
-      setScanResult(decodedText); // ✅ ตั้งค่า scanResult หลังจากอ่านสำเร็จ
-      scannerRef.current?.clear().catch(() => {}); // ✅ clear scanner หลังสแกนสำเร็จ
+      // เพิ่มคะแนนให้ user
+      if (points > 0) {
+        try {
+          const response = await addPointsToUser(userId, points);
+          
+          if (response.error) {
+            setError(response.error);
+          } else {
+            setMessage(`🎉 เพิ่มคะแนนสำเร็จ: ${points} คะแนน - ${response.message}`);
+          }
+        } catch (err: unknown) {
+          if (err instanceof Error) {
+            setError(err.message || "เกิดข้อผิดพลาดในการเพิ่มคะแนน");
+          } else {
+            setError("เกิดข้อผิดพลาดในการเพิ่มคะแนน");
+          }
+        }
+      } else {
+        setMessage(`ไม่มีคะแนนที่จะเพิ่ม (ขวด = 0)`);
+      }
 
-    } catch (error) {
-      console.error("Parsing error:", error);
-      setMessage("❌ ไม่สามารถอ่านข้อมูล QR ได้");
-    }
+      setScanResult(decodedText);
+      scannerRef.current?.clear().catch(() => {});
 
-    if (onScanSuccess) {
-      onScanSuccess(decodedText);
+      if (onScanSuccess) {
+        onScanSuccess(decodedText);
+      }
+    } catch (error: unknown) {
+      console.error("Scan handling error:", error);
+      if (error instanceof Error) {
+        setError(error.message || "เกิดข้อผิดพลาดในการอ่าน QR Code");
+      } else {
+        setError("เกิดข้อผิดพลาดในการอ่าน QR Code");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const calculatePoints = (big: number, small: number) => big * 200 + small * 100;
+  const calculatePoints = (big: number, small: number): number => {
+    // ตรวจสอบค่าติดลบ
+    const validBig = Math.max(0, big);
+    const validSmall = Math.max(0, small);
+    return validBig * 200 + validSmall * 100;
+  };
 
   const validateToken = async (token: string): Promise<boolean> => {
     try {
       const res = await axios.post("/api/validate-token", { token });
-      return res.data.valid;
-    } catch {
+      return res.data.valid === true;
+    } catch (error) {
+      console.error("Token validation error:", error);
       return false;
     }
   };
 
-  const addPointsToUser = async (userId: string, points: number, token: string): Promise<AddPointsResponse> => {
-    const res = await axios.post("/api/pointADD", { userId, points, token });
-    return res.data;
+  const addPointsToUser = async (userId: string, points: number): Promise<AddPointsResponse> => {
+    try {
+      const res = await axios.post("/api/add-points", { userId, points });
+      return res.data;
+    } catch (error: unknown) {
+      console.error("Add points error:", error);
+      const errorMessage = axios.isAxiosError(error) && error.response?.data?.error 
+        ? error.response.data.error 
+        : "เกิดข้อผิดพลาดในการเพิ่มคะแนน";
+      throw new Error(errorMessage);
+    }
   };
 
   const handleRescan = () => {
     setScanResult(null);
     setMessage("");
+    setError(null);
     setBottleDetails({ big: 0, small: 0, points: 0 });
-    scannerRef.current = null; // reset scannerRef
-    initializeScanner(); // สั่ง initialize ใหม่
+    
+    if (scannerRef.current) {
+      try {
+        scannerRef.current.clear();
+      } catch (error) {
+        console.error("Error clearing scanner:", error);
+      }
+    }
+    
+    scannerRef.current = null;
+    initializeScanner();
   };
 
   return (
@@ -161,6 +245,12 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
           <p>กำลังประมวลผล...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          ❌ {error}
         </div>
       )}
 
@@ -252,6 +342,14 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
           border-left: 4px solid #0ea5e9;
           border-radius: 4px;
         }
+        .error-message {
+          color: #000;
+          margin: 16px 0;
+          padding: 12px;
+          background-color: #fef2f2;
+          border-left: 4px solid #ef4444;
+          border-radius: 4px;
+        }
         .scan-result {
           color: #000;
           margin: 16px 0;
@@ -312,8 +410,6 @@ export default function QRCodeScannerWithPoints({ userId, onScanSuccess }: Props
           background: #2563eb;
         }
       `}</style>
-
-      {/* เอา style เดิมที่คุณมีมาแปะตรงนี้ได้เลย */}
     </div>
   );
 }

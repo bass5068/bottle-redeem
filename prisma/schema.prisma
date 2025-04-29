@@ -4,6 +4,7 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// /prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -24,7 +25,6 @@ model User {
   role          Role    @default(USER) // เพิ่ม role
   accounts      Account[]
   sessions      Session[]
-
   Redemption Redemption[]
 }
 enum Role {
@@ -95,25 +95,22 @@ enum Status {
   COMPLETED // ได้รับของแล้ว
 }
 
-<<<<<<< HEAD
-
 // enum TokenStatus {
 //   unused
 //   used
 //   expired
 // }
-=======
+
 enum TokenStatus {
   unused
   used
   expired
 }
->>>>>>> origin/dev-1
 
 model QRToken {
   id          String      @id @default(cuid())
   token       String      @unique
-<<<<<<< HEAD
+
   // tokenStatus TokenStatus @default(unused)
   createdAt   DateTime    @default(now())
   expiresAt   DateTime
@@ -122,10 +119,10 @@ model QRToken {
   PETbig      Int         @default(0) // Add this field
   PETsmall    Int         @default(0) // Add this field
   points      Int         @default(0) // Add the points field
-=======
+
   tokenStatus TokenStatus @default(unused)
-  createdAt   DateTime    @default(now())
-  expiresAt   DateTime
-  used        Boolean  @default(false)
->>>>>>> origin/dev-1
+  //createdAt   DateTime    @default(now())
+  //expiresAt   DateTime
+  //used        Boolean  @default(false)
 }
+
