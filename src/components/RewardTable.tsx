@@ -26,7 +26,7 @@ export default function RewardTable() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("/api/rewards")
+    fetch("/api/routers/rewards")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch rewards");
@@ -46,7 +46,7 @@ export default function RewardTable() {
 
   const deleteReward = (id: string) => {
     setIsLoading(true);
-    fetch(`/api/rewards?id=${id}`, { method: "DELETE" })
+    fetch(`/api/routers/rewards?id=${id}`, { method: "DELETE" })
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to delete reward");

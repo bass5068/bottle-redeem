@@ -13,7 +13,7 @@ export default function AccountForm() {
 
   useEffect(() => {
     if (session?.user.id) {
-      fetch(`/api/account?userId=${session.user.id}`)
+      fetch(`/api/routers/account?userId=${session.user.id}`)
         .then((res) => res.json())
         .then((data) => {
           setName(data.name );
@@ -30,7 +30,7 @@ export default function AccountForm() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/account`, {
+      const response = await fetch(`/api/routers/account`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

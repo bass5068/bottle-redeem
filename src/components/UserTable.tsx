@@ -25,7 +25,7 @@ export default function UserTable() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("/api/user")
+    fetch("/api/routers/user")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch users");

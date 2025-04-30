@@ -50,7 +50,7 @@ export default function RewardsPage() {
   const fetchRewards = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/rewards");
+      const res = await fetch("/api/routers/rewards");
       if (!res.ok) throw new Error("Failed to fetch rewards");
       const data = await res.json();
       setRewards(data);
@@ -65,7 +65,7 @@ export default function RewardsPage() {
     if (!session?.user?.id) return;
     
     try {
-      const res = await fetch(`/api/users/${session.user.id}/points`);
+      const res = await fetch(`/api/routers/users/${session.user.id}/points`);
       if (!res.ok) throw new Error("Failed to fetch user points");
       const data = await res.json();
       setUserData(data);
@@ -102,7 +102,7 @@ export default function RewardsPage() {
     if (!selectedReward || !session) return;
 
     try {
-      const response = await fetch("/api/redeem", {
+      const response = await fetch("/api/routers/redeem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

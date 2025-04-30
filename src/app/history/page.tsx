@@ -26,7 +26,7 @@ export default function UserHistory() {
   useEffect(() => {
     if (session?.user.id) {
       setLoading(true);
-      fetch(`/api/get-history?userId=${session.user.id}`)
+      fetch(`/api/routers/get-history?userId=${session.user.id}`)
         .then((res) => {
           if (!res.ok) {
             throw new Error("Failed to fetch history");
@@ -49,7 +49,7 @@ export default function UserHistory() {
     try {
       setUpdatingId(id);
       // ใช้ endpoint เดียวกับฝั่งแอดมิน
-      const response = await fetch("/api/redemptions/update", {
+      const response = await fetch("/api/routers/redemptions/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ redemptionId: id, status: "COMPLETED" }), // ใช้ชื่อ parameter เดียวกับฝั่งแอดมิน
@@ -69,7 +69,7 @@ export default function UserHistory() {
 
       // รีเฟรชข้อมูล
       if (session?.user.id) {
-        fetch(`/api/get-history?userId=${session.user.id}`)
+        fetch(`/api/routers/get-history?userId=${session.user.id}`)
           .then((res) => res.json())
           .then((data) => setHistory(data))
           .catch((error) => console.error("Failed to refresh history:", error));

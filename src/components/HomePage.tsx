@@ -29,9 +29,9 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [statsRes, recommendedRes, newsRes, newItemsRes] = await Promise.all([
-          fetch("/api/stats").then(res => res.json()),
+          fetch("/api/routers/stats").then(res => res.json()),
           fetch("/api/rewards/").then(res => res.json()),
-          fetch("/api/news").then(res => res.json()),
+          fetch("/api/routers/news").then(res => res.json()),
           fetch("/api/rewards/").then(res => res.json())
         ]);
 

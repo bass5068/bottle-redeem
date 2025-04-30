@@ -55,7 +55,7 @@ export default function AdminRewardTable() {
   const fetchRewards = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/rewards");
+      const res = await fetch("/api/routers/rewards");
       if (!res.ok) {
         throw new Error("Failed to fetch rewards");
       }
@@ -106,7 +106,7 @@ export default function AdminRewardTable() {
     setUploading(rewardId);
 
     try {
-      const res = await fetch("/api/upload-reward-image", {
+      const res = await fetch("/api/routers/upload-reward-image", {
         method: "POST",
         body: formData,
       });
@@ -203,7 +203,7 @@ export default function AdminRewardTable() {
 
     try {
       // First add the reward
-      const res = await fetch("/api/rewards", {
+      const res = await fetch("/api/routers/rewards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newReward),
@@ -221,7 +221,7 @@ export default function AdminRewardTable() {
         formData.append("file", newRewardImage);
         formData.append("rewardId", newRewardId);
 
-        const uploadRes = await fetch("/api/upload-reward-image", {
+        const uploadRes = await fetch("/api/routers/upload-reward-image", {
           method: "POST",
           body: formData,
         });
@@ -272,7 +272,7 @@ export default function AdminRewardTable() {
 
     try {
       // First update the reward
-      const res = await fetch(`/api/rewards/${editingReward.id}`, {
+      const res = await fetch(`/api/routers/rewards/${editingReward.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingReward),
@@ -288,7 +288,7 @@ export default function AdminRewardTable() {
         formData.append("file", editRewardImage);
         formData.append("rewardId", editingReward.id);
 
-        const uploadRes = await fetch("/api/upload-reward-image", {
+        const uploadRes = await fetch("/api/routers/upload-reward-image", {
           method: "POST",
           body: formData,
         });
@@ -315,7 +315,7 @@ export default function AdminRewardTable() {
     if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรางวัลนี้?")) return;
 
     try {
-      const res = await fetch(`/api/rewards?id=${rewardId}`, {
+      const res = await fetch(`/api/routers/rewards?id=${rewardId}`, {
         method: "DELETE",
       });
 

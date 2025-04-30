@@ -23,7 +23,7 @@ export default function AdminRedemptions() {
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
-    fetch("/api/redemptions")
+    fetch("/api/routers/redemptions")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -51,7 +51,7 @@ export default function AdminRedemptions() {
       );
       
       // โหลดข้อมูลใหม่แทนการใช้ mutate จาก swr
-      fetch("/api/redemptions")
+      fetch("/api/routers/redemptions")
         .then((res) => {
           if (res.ok) return res.json();
         })
