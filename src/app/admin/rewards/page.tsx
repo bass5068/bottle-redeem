@@ -439,7 +439,7 @@ export default function AdminRewardTable() {
                   type="text"
                   id="name"
                   placeholder="ชื่อรางวัล"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="text-black w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   value={newReward.name}
                   onChange={(e) => setNewReward({ ...newReward, name: e.target.value })}
                 />
@@ -454,7 +454,7 @@ export default function AdminRewardTable() {
                     type="number"
                     id="points"
                     placeholder="คะแนน"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="text-black w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     value={newReward.points}
                     onChange={(e) => setNewReward({ ...newReward, points: Number(e.target.value) })}
                   />
@@ -468,7 +468,7 @@ export default function AdminRewardTable() {
                     type="number"
                     id="stock" 
                     placeholder="จำนวน"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="text-black w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     value={newReward.stock}
                     onChange={(e) => setNewReward({ ...newReward, stock: Number(e.target.value) })}
                   />
@@ -483,7 +483,7 @@ export default function AdminRewardTable() {
                   id="description"
                   placeholder="รายละเอียดของรางวัล"
                   rows={3}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="text-black w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   value={newReward.description || ""}
                   onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
                 />
@@ -571,7 +571,7 @@ export default function AdminRewardTable() {
                   type="text"
                   id="edit-name"
                   placeholder="ชื่อรางวัล"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-black"
                   value={editingReward.name}
                   onChange={(e) => setEditingReward({ ...editingReward, name: e.target.value })}
                 />

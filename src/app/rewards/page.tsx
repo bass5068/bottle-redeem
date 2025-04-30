@@ -65,7 +65,7 @@ export default function RewardsPage() {
     if (!session?.user?.id) return;
     
     try {
-      const res = await fetch(`/api/routers/users/${session.user.id}/points`);
+      const res = await fetch(`/api/users/${session.user.id}/points`);
       if (!res.ok) throw new Error("Failed to fetch user points");
       const data = await res.json();
       setUserData(data);
