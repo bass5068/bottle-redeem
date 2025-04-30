@@ -1,3 +1,5 @@
+// // pages/api/auth/[...nextauth].ts
+
 import { PrismaClient } from "@prisma/client";
 import NextAuth, { DefaultSession, NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -48,14 +50,14 @@ export const authOptions: NextAuthOptions = {
     // เพิ่ม JWT callback
     async jwt({ token, user }) {
       if (user) {
-        // ดึงเฉพาะข้อมูลที่จำเป็นจากฐานข้อมูล
+
+                // เช็กว่าผู้ใช้มีอยู่ใน DB หรือยัง
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
+          where: { email: user.email || "" }, // ใช้ email ในการเชื่อม
           select: {
             id: true,
             role: true,
             points: true,
-            // ไม่ดึง image เพื่อลดขนาด token
           }
         });
         
@@ -64,6 +66,13 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
           token.points = dbUser.points;
         }
+        else {
+          // fallback ถ้าไม่มีใน DB
+          token.id = token.sub; // sub มักจะมีเสมอจาก Google
+          token.role = "user";
+          token.points = 0;
+        }
+    
       }
       return token;
     },
@@ -77,16 +86,6 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     }
-    
-    
-    // async session({ session, token }) {
-    //   if (session.user && token) {
-    //     session.user.id = token.id as string;
-    //     session.user.role = token.role as string;
-    //     session.user.points = token.points as number || 0;
-    //   }
-    //   return session;
-    // },
   },
   
   

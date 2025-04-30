@@ -10,6 +10,8 @@ export default async function AddPointsAPI(
 ) {
   if (req.method === "POST") {
     const { userId, points } = req.body;
+    console.log("API เรียกมาพร้อม:", req.body);
+
 
     if (!userId || !points) {
       return res.status(400).json({ error: "จำเป็นต้องมีรหัสผู้ใช้และคะแนน " });
@@ -25,9 +27,10 @@ export default async function AddPointsAPI(
           },
         },
       });
+      
       return res
         .status(200)
-        .json({ message: "อัปเดท Point สำเร็จ", user: updatedUser });
+        .json({ success: true, message: "อัปเดท Point สำเร็จ", points, user: updatedUser });
     } catch (error) {
       console.error("Error updating points:", error);
       return res

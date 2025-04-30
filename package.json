@@ -18,7 +18,7 @@
     "axios": "^1.8.4",
     "bottlecoins-app": "file:",
     "cloudinary": "^2.6.0",
-    "formidable": "^3.5.2",
+    "formidable": "^3.5.3",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.486.0",
     "multiparty": "^4.2.3",

@@ -1,95 +1,41 @@
 // src: src/app/redeem-qr/page.tsx
 "use client";
 import { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import QRCodeScanner from "@/components/QRCodeScanner";
 
 export default function RedeemQRPage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("idle"); // idle, loading, success, error
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (sessionStatus === "unauthenticated") {
       router.push("/auth/login");
     }
-  }, [status, router]);
+  }, [sessionStatus, router]);
 
+  // const userId = session?.user?.id; // ดึง userId ของคนที่ login ออกมา
 
   const handleScan = async (code: string) => {
+
+
+    // if (sessionStatus !== "authenticated" || !session?.user?.id) {
+    //   console.error("User not authenticated");
+    //   setMessage("กรุณาเข้าสู่ระบบก่อนแลกคะแนน");
+    //   setStatus("error");
+    //   return;
+    // }
+
     setMessage("กำลังแลกคะแนน...");
     setStatus("loading");
 
-    const userId = session?.user?.id; // ดึง userId ของคนที่ login ออกมา
+    // const userId = session.user.id
 
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-    
-      // 🔽 แปลง QR code string เป็น object
-    const params = Object.fromEntries(
-      code.split(";").map((pair) => {
-        const [key, value] = pair.split(":");
-        return [key.trim(), value.trim()];
-      })
-    );
-
-    const token = params.token;
-    const small = parseInt(params.small || "0", 10);
-    const big = parseInt(params.big || "0", 10);
-
-    const calculatePoints = (big: number, small: number) => big * 200 + small * 100;
-    
-    if (!token) {
-      setMessage("QR Code ไม่ถูกต้อง");
-      setStatus("error");
-      return;
-    }
-
-    try {
-      // เรียก API เพื่อเพิ่มคะแนน
-      // const res = await fetch("/api/routers/add-points", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     userId,
-      //     points: calculatePoints(big, small)
-      //   }),
-      // });
-
-      const points = calculatePoints(big, small);
-      const res = await axios.post("/api/routers/add-points", {
-        userId,
-        points,
-      });
-
-
-      console.log(calculatePoints(big, small), "points");
-  
-      const data = res.data;
-
-      if (data.success) {
-        console.log("เพิ่มคะแนนสำเร็จ:", data.totalPoints);
-      } else {
-        console.error(data.error);
-      }
-
-      if (res.status >= 200 && res.status < 300) {
-        setMessage(`แลกสำเร็จ ${data.points} Coins`);
-        setStatus("success");
-      } else {
-        setMessage(`ล้มเหลว: ${data.error}`);
-        setStatus("error");
-      }
-    } catch {
-      setMessage("เกิดข้อผิดพลาด");
-      setStatus("error");
-    }
-  };
+  }
 
   const resetScan = () => {
     setMessage("");

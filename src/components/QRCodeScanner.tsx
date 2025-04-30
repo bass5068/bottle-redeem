@@ -17,21 +17,39 @@ interface AddPointsResponse {
 }
 
 export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSuccess?: (decodedText: string) => void }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [bottleDetails, setBottleDetails] = useState<BottleDetails>({ big: 0, small: 0, points: 0 });
-  const [response, setResponse] = useState<AddPointsResponse>({ message: "" });
+  const [userId, setUserId] = useState<string | undefined>(undefined); // เก็บ userId แยก
+
+  console.log("session.user.id =", session?.user?.id);
+
+  
+
+  // ติดตามการเปลี่ยนแปลงของ session และอัปเดต userId
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.id) {
+      setUserId(session.user.id);
+      console.log("Session loaded - User ID:", session.user.id);
+    } else if (status === "unauthenticated") {
+      console.log("User not authenticated");
+    } else if (status === "loading") {
+      console.log("Session loading...");
+    }
+  }, [session, status]);
 
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
-    initializeScanner();
+    if (status !== "loading") { // รอให้ session โหลดเสร็จก่อน
+      initializeScanner();
+    }
     return () => {
       scannerRef.current?.clear().catch(() => {});
     };
-  }, []);
+  }, [status]); // เพิ่ม dependency เป็น status
 
   const initializeScanner = () => {
     if (scannerRef.current) return; // ป้องกัน initialize ซ้ำ
@@ -44,10 +62,9 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
   };
 
 
+  const calculatePoints = (big: number, small: number) => big * 200 + small * 100;
+
   const handleScan = async (decodedText: string) => {
-
-    const userId = session?.user?.id; // ดึงจาก session ที่ถูกต้อง
-
     
     if (!decodedText || decodedText.trim() === "") {
       console.warn("Empty decodedText, ignoring...");
@@ -85,23 +102,36 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
       }
 
       const points = calculatePoints(PETbig, PETsmall);
+      // ตรวจสอบสถานะการเข้าสู่ระบบและ userId อีกครั้ง
+      const currentUserId = userId || session?.user?.id;
+      console.log("Current userId:", currentUserId, "| points:", points, "| type:", typeof points);
+
       setBottleDetails({ big: PETbig, small: PETsmall, points });
 
-      if (userId && points > 0) {
+      if (currentUserId && points > 0) {
+        console.log("กำลังส่ง request ไป add-points:", { userId: currentUserId, points });
         setLoading(true);
         try {
+          const response = await addPointsToUser(currentUserId, points);
           setMessage(`🎉 เพิ่มคะแนนสำเร็จ: ${points} คะแนน - ${response.message}`);
         } catch (err: any) {
+          console.error("Error adding points:", err);
           setMessage(err.message || "เกิดข้อผิดพลาดในการเพิ่มคะแนน");
         } finally {
           setLoading(false);
         }
       } else {
-        setMessage(`✅ ขวดใหญ่ ${PETbig} (${PETbig * 200} คะแนน), ขวดเล็ก ${PETsmall} (${PETsmall * 100} คะแนน), รวม ${points} คะแนน`);
+        // แสดงข้อความแจ้งเตือนเมื่อไม่มี userId
+        if (!currentUserId) {
+          console.error("ไม่พบ User ID - กรุณาเข้าสู่ระบบอีกครั้ง");
+          setMessage("❌ ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบอีกครั้ง");
+        } else {
+          setMessage(`✅ ขวดใหญ่ ${PETbig} (${PETbig * 200} คะแนน), ขวดเล็ก ${PETsmall} (${PETsmall * 100} คะแนน), รวม ${points} คะแนน`);
+        }
       }
 
-      setScanResult(decodedText); // ✅ ตั้งค่า scanResult หลังจากอ่านสำเร็จ
-      scannerRef.current?.clear().catch(() => {}); // ✅ clear scanner หลังสแกนสำเร็จ
+      setScanResult(decodedText);
+      scannerRef.current?.clear().catch(() => {});
 
     } catch (error) {
       console.error("Parsing error:", error);
@@ -113,7 +143,7 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
     }
   };
 
-  const calculatePoints = (big: number, small: number) => big * 200 + small * 100;
+  
 
   const validateToken = async (token: string): Promise<boolean> => {
     try {
@@ -124,6 +154,11 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
     }
   };
 
+  const addPointsToUser = async (userId: string, points: number): Promise<AddPointsResponse> => {
+    const res = await axios.post("/api/routers/add-points", { userId: userId, points: Number(points) });
+    return res.data;
+  };
+  
 
   const handleRescan = () => {
     setScanResult(null);
