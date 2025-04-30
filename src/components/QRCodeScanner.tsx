@@ -33,7 +33,7 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
 
   // ใช้ useRef เก็บค่า QR ที่สแกนได้ล่าสุดเพื่อป้องกันการประมวลผลซ้ำ
   const lastScannedCode = useRef<string | null>(null);
-    
+
 
   // ติดตามการเปลี่ยนแปลงของ session และอัปเดต userId
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
       const PETbig = parseInt(params.big || "0", 10);
       const PETsmall = parseInt(params.small || "0", 10);
 
-      const isValid = await validateToken(token);
+      const isValid = await validateToken(token, PETbig, PETsmall, calculatePoints(PETbig, PETsmall));
       if (!isValid) {
         setMessage("❌ Token ไม่ถูกต้องหรือหมดอายุ");
         return;
@@ -154,9 +154,15 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
 
   
 
-  const validateToken = async (token: string): Promise<boolean> => {
+  const validateToken = async (token: string, PETbig: number, PETsmall: number, points: number): Promise<boolean> => {
     try {
-      const res = await axios.post("/api/routers/validate-token", { token });
+      const res = await axios.post("/api/routers/validate-token", 
+        { 
+          token, 
+          PETbig, 
+          PETsmall, 
+          points
+        });
       return res.data.valid;
     } catch {
       return false;

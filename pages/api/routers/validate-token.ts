@@ -7,7 +7,11 @@ const prisma = new PrismaClient();
 export default async function validate_token(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end("Method not allowed");
 
-  const { token } = req.body;
+  const { token, PETbig, PETsmall, points } = req.body;
+  console.log("Received:", {
+    token, PETbig, PETsmall, points,
+    types: { big: typeof PETbig, small: typeof PETsmall, points: typeof points }
+  });
 
   if (!token) {
     return res.status(400).json({ valid: false, error: "Token is required" });
@@ -30,15 +34,21 @@ export default async function validate_token(req: NextApiRequest, res: NextApiRe
   }
 
   // ✅ Update token status to used = true
-  await prisma.qRToken.update({
+  const updatedRecord = await prisma.qRToken.update({
     where: { token },
-    data: { used: true }
+    data: { 
+      used: true,
+      PETbig,
+      PETsmall,
+      points,
+
+     }
   });
 
   return res.status(200).json({
     valid: true,
-    PETbig: record.PETbig,
-    PETsmall: record.PETsmall,
-    points: record.points
+    PETbig: updatedRecord.PETbig,
+    PETsmall: updatedRecord.PETsmall,
+    points: updatedRecord.points
   });
 }
