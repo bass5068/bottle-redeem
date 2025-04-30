@@ -23,10 +23,17 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
   const [message, setMessage] = useState("");
   const [bottleDetails, setBottleDetails] = useState<BottleDetails>({ big: 0, small: 0, points: 0 });
   const [userId, setUserId] = useState<string | undefined>(undefined); // เก็บ userId แยก
+  const [scannerError, setScannerError] = useState(false);
 
   console.log("session.user.id =", session?.user?.id);
 
-  
+  // เพิ่ม state เพื่อป้องกันการสแกนซ้ำ
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [scannerInitialized, setScannerInitialized] = useState(false);
+
+  // ใช้ useRef เก็บค่า QR ที่สแกนได้ล่าสุดเพื่อป้องกันการประมวลผลซ้ำ
+  const lastScannedCode = useRef<string | null>(null);
+    
 
   // ติดตามการเปลี่ยนแปลงของ session และอัปเดต userId
   useEffect(() => {
@@ -43,13 +50,15 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
-    if (status !== "loading") { // รอให้ session โหลดเสร็จก่อน
+    if (status !== "loading" && !scannerInitialized && !scanResult) { // รอให้ session โหลดเสร็จก่อน
       initializeScanner();
     }
     return () => {
-      scannerRef.current?.clear().catch(() => {});
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+      }
     };
-  }, [status]); // เพิ่ม dependency เป็น status
+  }, [status, scannerInitialized, scanResult]); // เพิ่ม dependency เป็น status
 
   const initializeScanner = () => {
     if (scannerRef.current) return; // ป้องกัน initialize ซ้ำ
