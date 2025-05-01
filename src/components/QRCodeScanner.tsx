@@ -121,7 +121,7 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
         console.log("กำลังส่ง request ไป add-points:", { userId: currentUserId, points });
         setLoading(true);
         try {
-          const response = await addPointsToUser(currentUserId, points);
+          const response = await addPointsToUser(currentUserId, points, PETbig, PETsmall);
           setMessage(`🎉 เพิ่มคะแนนสำเร็จ: ${points} คะแนน - ${response.message}`);
         } catch (err: any) {
           console.error("Error adding points:", err);
@@ -169,8 +169,8 @@ export default function QRCodeScannerWithPoints({ onScanSuccess }: { onScanSucce
     }
   };
 
-  const addPointsToUser = async (userId: string, points: number): Promise<AddPointsResponse> => {
-    const res = await axios.post("/api/routers/add-points", { userId: userId, points: Number(points) });
+  const addPointsToUser = async (userId: string, points: number, PETbig: number, PETsmall: number): Promise<AddPointsResponse> => {
+    const res = await axios.post("/api/routers/add-points", { userId: userId, points: Number(points), PETbig, PETsmall });
     return res.data;
   };
   

@@ -9,8 +9,11 @@ export default async function AddPointsAPI(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const { userId, points } = req.body;
-    console.log("API เรียกมาพร้อม:", req.body);
+    const { userId, points, PETbig, PETsmall } = req.body;
+    console.log("Received:", {
+      userId, PETbig, PETsmall, points,
+      types: { big: typeof PETbig, small: typeof PETsmall, points: typeof points }
+    });
 
 
     if (!userId || !points) {
@@ -24,6 +27,12 @@ export default async function AddPointsAPI(
         data: {
           points: {
             increment: points,
+          },
+          PETbig: {
+            increment: PETbig,
+          },
+          PETsmall: {
+            increment: PETsmall,
           },
         },
       });

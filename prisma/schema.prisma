@@ -22,6 +22,8 @@ model User {
   emailVerified DateTime?
   image         String?
   points        Int       @default(0)
+  PETbig        Int       @default(0) // เพิ่มฟิลด์สำหรับจำนวนขวด PETbig
+  PETsmall      Int       @default(0) // เพิ่มฟิลด์สำหรับจำนวนขวด PETsmall
   role          Role    @default(USER) // เพิ่ม role
   accounts      Account[]
   sessions      Session[]
@@ -96,23 +98,11 @@ enum Status {
   COMPLETED // ได้รับของแล้ว
 }
 
-// enum TokenStatus {
-//   unused
-//   used
-//   expired
-// }
 
-enum TokenStatus {
-  unused
-  used
-  expired
-}
 
 model QRToken {
   id          String      @id @default(cuid())
   token       String      @unique
-
-  // tokenStatus TokenStatus @default(unused)
   createdAt   DateTime    @default(now())
   expiresAt   DateTime
   updatedAt   DateTime    @updatedAt
@@ -121,8 +111,4 @@ model QRToken {
   PETsmall    Int         @default(0) // Add this field
   points      Int         @default(0) // Add the points field
 
-  tokenStatus TokenStatus @default(unused)
-  //createdAt   DateTime    @default(now())
-  //expiresAt   DateTime
-  //used        Boolean  @default(false)
 }
